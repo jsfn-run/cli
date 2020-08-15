@@ -1,10 +1,11 @@
 set -xe
 
-git clone git@github.com:node-lambdas/echo.git $1
+git clone git@github.com:node-lambdas/$2.git $1
 cd $1
 
 # OSX
-sed -i '' -e "s/echo/$1/" package.json
+sed -i '' -e "s/$2/$1/" package.json
+sed -i '' -e "s/$2/$1/" service.json
 
 # Linux
 # sed -i "s/echo/$1/" package.json

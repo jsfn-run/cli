@@ -15,20 +15,27 @@ const onError = (message) => {
 const args = process.argv.slice(2);
 
 if (args[0] === '--create') {
+  args.shift();
   create();
 } else {
   run();
 }
 
 function create() {
-  const name = args[1];
+  let from = 'echo';
+  if (args[0] === '--from') {
+    args.shift();
+    from = args.shift();
+  }
+
+  const name = args[0];
   if (!name) {
     onError('Name for new function was not provided');
     return;
   }
 
   const scriptPath = join(__dirname, 'create.sh');
-  console.log(exec(`$SHELL ${scriptPath} ${name}`, { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() }));
+  console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() }));
 }
 
 function run() {
