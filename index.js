@@ -2,7 +2,10 @@
 
 import { request as http } from 'https';
 import { execSync as exec } from 'child_process';
-import { join } from 'path';
+import { join, resolve, dirname } from 'path';
+
+// https://stackoverflow.com/a/51118243
+const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)));
 
 const onError = (message) => {
   process.stderr.write(String(message) + '\n');
@@ -24,8 +27,8 @@ function create() {
     return;
   }
 
-  const scriptPath = join(process.cwd(), 'create.sh');
-  console.log(exec(`$SHELL ${scriptPath} ${name}`, { stdio: 'pipe', encoding: 'utf8' }));
+  const scriptPath = join(__dirname, 'create.sh');
+  console.log(exec(`$SHELL ${scriptPath} ${name}`, { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() }));
 }
 
 function run() {
