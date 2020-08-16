@@ -1,11 +1,16 @@
 {
   "name": "@node-lambdas/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "bin": {
     "fn": "./index.js"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Darlan Alves",
+    "email": "me@darlanalv.es"
   }
 }
