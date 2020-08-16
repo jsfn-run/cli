@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 import { request as http } from 'https';
-import { execSync as exec } from 'child_process';
+import { execSync as exec, spawn } from 'child_process';
 import { join, resolve, dirname } from 'path';
+import { existsSync } from 'fs';
 
 // https://stackoverflow.com/a/51118243
 const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)));
+const CWD = process.cwd();
 
 const onError = (message) => {
   process.stderr.write(String(message) + '\n');
@@ -14,11 +16,33 @@ const onError = (message) => {
 
 const args = process.argv.slice(2);
 
-if (args[0] === '--create') {
-  args.shift();
-  create();
-} else {
-  run();
+switch (args[0]) {
+  case '--create':
+    args.shift();
+    create();
+    break;
+
+  case '--serve':
+    serve();
+    break;
+
+  default:
+    run();
+}
+
+async function serve() {
+  if (!existsSync(join(CWD, 'index.js'))) {
+    onError('Cannot find index.js. Are you in the right folder?');
+  }
+
+  if (!existsSync(join(CWD, 'node_modules', '@node-lambdas', 'core'))) {
+    console.log('Installing @node-lambdas/core');
+    exec('npm i --no-save @node-lambdas/core');
+  }
+
+  const port = process.env.PORT = 3000 + Math.round(Math.random() * 4000);
+  console.log(`Starting server on ${port}`);
+  exec('node index.js', { env: process.env, stdio: 'pipe', cwd: CWD });
 }
 
 function create() {
