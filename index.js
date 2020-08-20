@@ -136,7 +136,7 @@ function parseArgs(args, addParam) {
     if (args[cursor].includes('=')) {
       addParam(...args[cursor++].slice(2).split('='));
     } else {
-      addParam(args[cursor++].slice(2), args[cursor].startsWith('--') ? true : args[cursor++]);
+      addParam(args[cursor++].slice(2), (args[cursor] || '').startsWith('--') ? true : args[cursor++]);
     }
   }
 }
