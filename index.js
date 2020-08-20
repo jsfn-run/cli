@@ -9,6 +9,7 @@ import { existsSync } from 'fs';
 // https://stackoverflow.com/a/51118243
 const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)));
 const CWD = process.cwd();
+const DEFAULT_PORT = 1234;
 
 const onError = (message) => {
   process.stderr.write(String(message) + '\n');
@@ -25,14 +26,16 @@ switch (cliArgs[0]) {
     break;
 
   case '--serve':
-    serve();
+    cliArgs.shift();
+    serve(cliArgs);
     break;
 
   default:
     run(cliArgs.slice());
 }
 
-async function serve() {
+async function serve(options) {
+  options = argsToOptions(options);
   const pathToIndex = join(CWD, 'index.js');
 
   if (!existsSync(pathToIndex)) {
@@ -44,7 +47,8 @@ async function serve() {
     exec('npm i --no-save @node-lambdas/core');
   }
 
-  const port = process.env.PORT = 1234;
+  const port = options.port || DEFAULT_PORT;
+  process.env.PORT = port;
   console.log(`Starting server on ${port}`);
 
   const fn = await import(pathToIndex);
@@ -73,7 +77,7 @@ function run(args) {
   const options = splitIndex !== -1 ? args.slice(0, splitIndex) : args;
   const fnArgs = splitIndex !== -1 ? args.slice(splitIndex + 1) : args;
 
-  const url = getFunctionUrl(fnArgs, options);
+  const url = getFunctionUrl(fnArgs, argsToOptions(options));
   const requestOptions = {
     method: 'POST',
     headers: { 'user-agent': 'node-lambdas/cli' },
@@ -86,11 +90,12 @@ function run(args) {
 }
 
 function getFunctionUrl(args, options) {
-  const isLocal = options.includes('--local');
+  const isLocal = !!options.local;
   const fn = !isLocal && getFunctionName(args);
   const action = args.shift() || '';
   const params = argsToParams(args);
-  const baseUrl = isLocal ? `http://localhost:1234/${action}` : `https://${fn}.jsfn.run/${action}`;
+  const port = options.port || DEFAULT_PORT;
+  const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
 
   return new URL(baseUrl + (params.length && '?' + params.join('&') || ''))
 }
@@ -105,18 +110,31 @@ function getFunctionName(args) {
   return fn;
 }
 
+
+function argsToOptions(args) {
+  const params = {};
+  const addParam = (key, value) => params[key] = value;
+  parseArgs(args, addParam);
+
+  return params;
+}
+
 function argsToParams(args) {
   const params = [];
   const addParam = (key, value) => params.push(key + '=' + encodeURIComponent(value));
+  parseArgs(args, addParam);
+
+  return params;
+}
+
+function parseArgs(args, addParam) {
   let cursor = 0;
 
   for (; cursor < args.length;) {
     if (args[cursor].includes('=')) {
       addParam(...args[cursor++].slice(2).split('='));
     } else {
-      addParam(args[cursor++].slice(2), args[cursor++]);
+      addParam(args[cursor++].slice(2), args[cursor].startsWith('--') ? true : args[cursor++]);
     }
   }
-
-  return params;
 }
