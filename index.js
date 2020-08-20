@@ -57,8 +57,6 @@ function create(args) {
   const from = options.from || 'echo';
   const name = options.create;
 
-  console.log(name, from, options);
-
   if (!name) {
     onError('Name for new function was not provided');
     return;
@@ -71,11 +69,8 @@ function create(args) {
 }
 
 function run(args) {
-  const splitIndex = args.indexOf('--');
-  const options = splitIndex !== -1 ? args.slice(0, splitIndex) : args;
-  const fnArgs = splitIndex !== -1 ? args.slice(splitIndex + 1) : args;
-
-  const url = getFunctionUrl(fnArgs, argsToOptions(options));
+  const { options, params } = splitOptionsAndParams(args);
+  const url = getFunctionUrl(params, options);
   const requestOptions = {
     method: 'POST',
     headers: { 'user-agent': 'node-lambdas/cli' },
@@ -89,11 +84,37 @@ function run(args) {
   process.stdin.pipe(request);
 }
 
-function getFunctionUrl(args, options) {
+function normalizeArgs(args) {
+  const params = [];
+
+  const firstIsFunctionName = args.length && !args[0].startsWith('--');
+  if (firstIsFunctionName) {
+    params.push(args.shift());
+  }
+
+  const addParam = (key, value) => params.push(key + '=' + value);
+  parseArgs(args, addParam);
+
+  return params;
+}
+
+function splitOptionsAndParams(args) {
+  const splitIndex = args.indexOf('--');
+
+  if (splitIndex !== -1) {
+    const options = argsToOptions(args.slice(0, splitIndex));
+    const params = normalizeArgs(args.slice(splitIndex + 1));
+
+    return { options, params };
+  }
+
+  return { options: {}, params: normalizeArgs(args) };
+}
+
+function getFunctionUrl(params, options) {
   const isLocal = !!options.local;
-  const fn = !isLocal && getFunctionName(args);
-  const action = args.shift() || '';
-  const params = argsToParams(args);
+  const fn = isLocal || getFunctionName(params);
+  const action = params.length && !params[0].includes('=') && params.shift() || '';
   const port = options.port || DEFAULT_PORT;
   const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
   const urlParams = (params.length && '?' + params.join('&')) || '';
@@ -113,16 +134,7 @@ function getFunctionName(args) {
 
 function argsToOptions(args) {
   const params = {};
-  const addParam = (key, value) => (params[key] = value);
-
-  parseArgs(args, addParam);
-
-  return params;
-}
-
-function argsToParams(args) {
-  const params = [];
-  const addParam = (key, value) => params.push(key + '=' + encodeURIComponent(value));
+  const addParam = (key, value) => (params[key.slice(2)] = value);
 
   parseArgs(args, addParam);
 
@@ -134,9 +146,9 @@ function parseArgs(args, addParam) {
 
   for (; cursor < args.length;) {
     if (args[cursor].includes('=')) {
-      addParam(...args[cursor++].slice(2).split('='));
+      addParam(...args[cursor++].split('='));
     } else {
-      addParam(args[cursor++].slice(2), (args[cursor] || '').startsWith('--') ? true : args[cursor++]);
+      addParam(args[cursor++], (!args[cursor] || args[cursor].startsWith('--')) ? true : args[cursor++]);
     }
   }
 }
