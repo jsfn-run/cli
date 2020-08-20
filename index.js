@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { request as http } from 'https';
+import { request as http } from 'http';
+import { request as https } from 'https';
 import { execSync as exec, spawn } from 'child_process';
 import { join, resolve, dirname } from 'path';
 import { existsSync } from 'fs';
@@ -14,11 +15,12 @@ const onError = (message) => {
   process.exit(1);
 };
 
-const args = process.argv.slice(2);
+const cliArgs = process.argv.slice(2);
 
-switch (args[0]) {
+switch (cliArgs[0]) {
   case '--create':
-    args.shift();
+  case '--new':
+    cliArgs.shift();
     create();
     break;
 
@@ -27,12 +29,14 @@ switch (args[0]) {
     break;
 
   default:
-    run();
+    run(cliArgs.slice());
 }
 
 async function serve() {
-  if (!existsSync(join(CWD, 'index.js'))) {
-    onError('Cannot find index.js. Are you in the right folder?');
+  const pathToIndex = join(CWD, 'index.js');
+
+  if (!existsSync(pathToIndex)) {
+    onError('Cannot find index.js in ' + CWD + '. Are you in the right folder?');
   }
 
   if (!existsSync(join(CWD, 'node_modules', '@node-lambdas', 'core'))) {
@@ -40,19 +44,21 @@ async function serve() {
     exec('npm i --no-save @node-lambdas/core');
   }
 
-  const port = process.env.PORT = 3000 + Math.round(Math.random() * 4000);
+  const port = process.env.PORT = 1234;
   console.log(`Starting server on ${port}`);
-  exec('node index.js', { env: process.env, stdio: 'pipe', cwd: CWD });
+
+  const fn = await import(pathToIndex);
+  return fn;
 }
 
 function create() {
   let from = 'echo';
-  if (args[0] === '--from') {
-    args.shift();
-    from = args.shift();
+  if (cliArgs[0] === '--from') {
+    cliArgs.shift();
+    from = cliArgs.shift();
   }
 
-  const name = args[0];
+  const name = cliArgs[0];
   if (!name) {
     onError('Name for new function was not provided');
     return;
@@ -62,22 +68,55 @@ function create() {
   console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() }));
 }
 
-function run() {
-  const fn = args.shift();
+function run(args) {
+  const splitIndex = args.indexOf('--');
+  const options = splitIndex !== -1 ? args.slice(0, splitIndex) : args;
+  const fnArgs = splitIndex !== -1 ? args.slice(splitIndex + 1) : args;
 
-  if (!fn) {
-    onError('Function name not provided.');
-    return;
-  }
-
-  const url = new URL(`https://${fn}.jsfn.run/${args.join('/')}`);
-  const options = {
+  const url = getFunctionUrl(fnArgs, options);
+  const requestOptions = {
     method: 'POST',
     headers: { 'user-agent': 'node-lambdas/cli' },
     timeout: 30_000,
   };
 
-  const request = http(url, options, (response) => response.pipe(process.stdout));
+  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, (response) => response.pipe(process.stdout));
   request.on('error', onError);
   process.stdin.pipe(request);
+}
+
+function getFunctionUrl(args, options) {
+  const isLocal = options.includes('--local');
+  const fn = !isLocal && getFunctionName(args);
+  const action = args.shift() || '';
+  const params = argsToParams(args);
+  const baseUrl = isLocal ? `http://localhost:1234/${action}` : `https://${fn}.jsfn.run/${action}`;
+
+  return new URL(baseUrl + (params.length && '?' + params.join('&') || ''))
+}
+
+function getFunctionName(args) {
+  const fn = args.shift();
+
+  if (!fn) {
+    onError('Function name not provided.');
+  }
+
+  return fn;
+}
+
+function argsToParams(args) {
+  const params = [];
+  const addParam = (key, value) => params.push(key + '=' + encodeURIComponent(value));
+  let cursor = 0;
+
+  for (; cursor < args.length;) {
+    if (args[cursor].includes('=')) {
+      addParam(...args[cursor++].slice(2).split('='));
+    } else {
+      addParam(args[cursor++].slice(2), args[cursor++]);
+    }
+  }
+
+  return params;
 }
