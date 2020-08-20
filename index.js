@@ -2,7 +2,7 @@
 
 import { request as http } from 'http';
 import { request as https } from 'https';
-import { execSync as exec, spawn } from 'child_process';
+import { execSync as exec } from 'child_process';
 import { join, resolve, dirname } from 'path';
 import { existsSync } from 'fs';
 
@@ -20,18 +20,15 @@ const cliArgs = process.argv.slice(2);
 
 switch (cliArgs[0]) {
   case '--create':
-  case '--new':
-    cliArgs.shift();
-    create();
+    create(cliArgs);
     break;
 
   case '--serve':
-    cliArgs.shift();
     serve(cliArgs);
     break;
 
   default:
-    run(cliArgs.slice());
+    run(cliArgs);
 }
 
 async function serve(options) {
@@ -55,21 +52,22 @@ async function serve(options) {
   return fn;
 }
 
-function create() {
-  let from = 'echo';
-  if (cliArgs[0] === '--from') {
-    cliArgs.shift();
-    from = cliArgs.shift();
-  }
+function create(args) {
+  const options = argsToOptions(args);
+  const from = options.from || 'echo';
+  const name = options.create;
 
-  const name = cliArgs[0];
+  console.log(name, from, options);
+
   if (!name) {
     onError('Name for new function was not provided');
     return;
   }
 
   const scriptPath = join(__dirname, 'create.sh');
-  console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() }));
+  const execOptions = { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() };
+
+  console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, execOptions));
 }
 
 function run(args) {
@@ -84,7 +82,9 @@ function run(args) {
     timeout: 30_000,
   };
 
-  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, (response) => response.pipe(process.stdout));
+  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, (response) =>
+    response.pipe(process.stdout),
+  );
   request.on('error', onError);
   process.stdin.pipe(request);
 }
@@ -96,8 +96,9 @@ function getFunctionUrl(args, options) {
   const params = argsToParams(args);
   const port = options.port || DEFAULT_PORT;
   const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
+  const urlParams = (params.length && '?' + params.join('&')) || '';
 
-  return new URL(baseUrl + (params.length && '?' + params.join('&') || ''))
+  return new URL(baseUrl + urlParams);
 }
 
 function getFunctionName(args) {
@@ -110,10 +111,10 @@ function getFunctionName(args) {
   return fn;
 }
 
-
 function argsToOptions(args) {
   const params = {};
-  const addParam = (key, value) => params[key] = value;
+  const addParam = (key, value) => (params[key] = value);
+
   parseArgs(args, addParam);
 
   return params;
@@ -122,6 +123,7 @@ function argsToOptions(args) {
 function argsToParams(args) {
   const params = [];
   const addParam = (key, value) => params.push(key + '=' + encodeURIComponent(value));
+
   parseArgs(args, addParam);
 
   return params;
