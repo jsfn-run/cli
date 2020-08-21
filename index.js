@@ -4,7 +4,7 @@ import { request as http } from 'http';
 import { request as https } from 'https';
 import { execSync as exec } from 'child_process';
 import { join, resolve, dirname } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, createReadStream } from 'fs';
 
 // https://stackoverflow.com/a/51118243
 const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)));
@@ -69,7 +69,7 @@ function create(args) {
 }
 
 function run(args) {
-  const { options, params } = splitOptionsAndParams(args);
+  const { options, params, input } = splitOptionsAndParams(args);
   const url = getFunctionUrl(params, options);
   const requestOptions = {
     method: 'POST',
@@ -81,7 +81,7 @@ function run(args) {
     response.pipe(process.stdout),
   );
   request.on('error', onError);
-  process.stdin.pipe(request);
+  (input || process.stdin).pipe(request);
 }
 
 function normalizeArgs(args) {
@@ -99,16 +99,24 @@ function normalizeArgs(args) {
 }
 
 function splitOptionsAndParams(args) {
+  const inputArg = args.find(arg => arg.charAt(0) === '@');
+  let input;
+
+  if (inputArg) {
+    args = args.filter(arg => arg !== inputArg);
+    input = createReadStream(join(CWD, inputArg.slice(1)));
+  }
+
   const splitIndex = args.indexOf('--');
 
   if (splitIndex !== -1) {
     const options = argsToOptions(args.slice(0, splitIndex));
     const params = normalizeArgs(args.slice(splitIndex + 1));
 
-    return { options, params };
+    return { input, options, params };
   }
 
-  return { options: {}, params: normalizeArgs(args) };
+  return { input, options: {}, params: normalizeArgs(args) };
 }
 
 function getFunctionUrl(params, options) {
@@ -117,7 +125,8 @@ function getFunctionUrl(params, options) {
   const action = params.length && !params[0].includes('=') && params.shift() || '';
   const port = options.port || DEFAULT_PORT;
   const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
-  const urlParams = (params.length && '?' + params.join('&')) || '';
+  const normalizedParams = params.map(p => p.slice(2));
+  const urlParams = (normalizedParams.length && '?' + normalizedParams.join('&')) || '';
 
   return new URL(baseUrl + urlParams);
 }
