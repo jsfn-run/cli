@@ -77,6 +77,8 @@ function create(args) {
 function run(args, input = process.stdin, output = process.stdout) {
   const { options, params } = splitOptionsAndParams(args);
   const url = buildFunctionUrl(params, options);
+  const stdin = options.stdin ? createReadStream(join(CWD, options.stdin)) : input;
+
   const onResponse = (response) => {
     const nextHeader = response.headers['x-next'];
     const next = nextHeader !== undefined ? parseArgs(nextHeader) : false;
@@ -88,19 +90,20 @@ function run(args, input = process.stdin, output = process.stdout) {
 
     response.pipe(output);
   };
+
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
 
   request.on('error', onError);
-  input.pipe(request);
+  stdin.pipe(request);
 }
 
 function splitOptionsAndParams(args) {
-  const knownOptions = ['--port', '--local'];
+  const knownOptions = ['--port', '--local', '--stdin'];
   const normalArgs = normalizeArgs(args);
   const options = [];
   const params = [];
 
-  normalArgs.forEach(arg => {
+  normalArgs.forEach((arg) => {
     if (knownOptions.includes(arg.split('=')[0])) {
       options.push(arg);
     } else {
@@ -114,6 +117,7 @@ function splitOptionsAndParams(args) {
 function normalizeArgs(args) {
   const params = [];
   const addParam = (key, value) => params.push(value !== undefined ? key + '=' + value : key);
+  args = args.map((arg) => (arg.charAt(0) === '@' ? '--stdin=' + arg.slice(1) : arg));
 
   forEachArg(args, addParam);
 
@@ -121,19 +125,24 @@ function normalizeArgs(args) {
 }
 
 function buildFunctionUrl(params, options) {
-  const isLocal = !!options.local;
-  const fn = isLocal || getFunctionName(params);
-  const action = getFunctionAction(params);
-  const port = options.port || DEFAULT_PORT;
-  const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
+  const baseUrl = getBaseUrl(options, params);
   const normalizedParams = removeDashes(params);
   const urlParams = (normalizedParams.length && '?' + normalizedParams.join('&')) || '';
 
   return new URL(baseUrl + urlParams);
 }
 
-function getFunctionAction(params) {
-  return params.length && !params[0].includes('=') && params.shift() || '';
+function getBaseUrl(options, params) {
+  const isLocal = !!options.local;
+  const fn = isLocal || getFunctionName(params);
+  const action = getAction(params);
+  const port = options.port || DEFAULT_PORT;
+
+  return isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
+}
+
+function getAction(params) {
+  return (params.length && !params[0].includes('=') && params.shift()) || '';
 }
 
 function getFunctionName(args) {
@@ -147,7 +156,7 @@ function getFunctionName(args) {
 }
 
 function removeDashes(params) {
-  return params.map(p => hasDashes(p) ? p.slice(2) : p);
+  return params.map((p) => (hasDashes(p) ? p.slice(2) : p));
 }
 
 function hasDashes(option) {
@@ -167,7 +176,7 @@ function buildOptions(args) {
 }
 
 function forEachArg(args, addParam) {
-  args.forEach(arg => {
+  args.forEach((arg) => {
     const isOption = hasDashes(arg);
     if (isOption && arg.includes('=')) {
       addParam(...arg.split('='));
