@@ -11,6 +11,12 @@ const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)))
 const CWD = process.cwd();
 const DEFAULT_PORT = 1234;
 
+const requestOptions = {
+  method: 'POST',
+  headers: { 'user-agent': 'node-lambdas/cli' },
+  timeout: 30_000,
+};
+
 const onError = (message) => {
   process.stderr.write(String(message) + '\n');
   process.exit(1);
@@ -31,8 +37,8 @@ switch (cliArgs[0]) {
     run(cliArgs);
 }
 
-async function serve(options) {
-  options = argsToOptions(options);
+async function serve(args) {
+  const { options } = splitOptionsAndParams(args);
   const pathToIndex = join(CWD, 'index.js');
 
   if (!existsSync(pathToIndex)) {
@@ -53,7 +59,7 @@ async function serve(options) {
 }
 
 function create(args) {
-  const options = argsToOptions(args);
+  const options = buildOptions(args);
   const from = options.from || 'echo';
   const name = options.create;
 
@@ -68,67 +74,66 @@ function create(args) {
   console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, execOptions));
 }
 
-function run(args) {
-  const { options, params, input } = splitOptionsAndParams(args);
-  const url = getFunctionUrl(params, options);
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'user-agent': 'node-lambdas/cli' },
-    timeout: 30_000,
-  };
+function run(args, input = process.stdin, output = process.stdout) {
+  const { options, params } = splitOptionsAndParams(args);
+  const url = buildFunctionUrl(params, options);
+  const onResponse = (response) => {
+    const nextHeader = response.headers['x-next'];
+    const next = nextHeader !== undefined ? parseArgs(nextHeader) : false;
 
-  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, (response) =>
-    response.pipe(process.stdout),
-  );
+    if (next) {
+      run(next, response, output);
+      return;
+    }
+
+    response.pipe(output);
+  };
+  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
+
   request.on('error', onError);
-  (input || process.stdin).pipe(request);
+  input.pipe(request);
+}
+
+function splitOptionsAndParams(args) {
+  const knownOptions = ['--port', '--local'];
+  const normalArgs = normalizeArgs(args);
+  const options = [];
+  const params = [];
+
+  normalArgs.forEach(arg => {
+    if (knownOptions.includes(arg.split('=')[0])) {
+      options.push(arg);
+    } else {
+      params.push(arg);
+    }
+  });
+
+  return { options: buildOptions(options), params };
 }
 
 function normalizeArgs(args) {
   const params = [];
+  const addParam = (key, value) => params.push(value !== undefined ? key + '=' + value : key);
 
-  const firstIsFunctionName = args.length && !args[0].startsWith('--');
-  if (firstIsFunctionName) {
-    params.push(args.shift());
-  }
-
-  const addParam = (key, value) => params.push(key + '=' + value);
-  parseArgs(args, addParam);
+  forEachArg(args, addParam);
 
   return params;
 }
 
-function splitOptionsAndParams(args) {
-  const inputArg = args.find(arg => arg.charAt(0) === '@');
-  let input;
-
-  if (inputArg) {
-    args = args.filter(arg => arg !== inputArg);
-    input = createReadStream(join(CWD, inputArg.slice(1)));
-  }
-
-  const splitIndex = args.indexOf('--');
-
-  if (splitIndex !== -1) {
-    const options = argsToOptions(args.slice(0, splitIndex));
-    const params = normalizeArgs(args.slice(splitIndex + 1));
-
-    return { input, options, params };
-  }
-
-  return { input, options: {}, params: normalizeArgs(args) };
-}
-
-function getFunctionUrl(params, options) {
+function buildFunctionUrl(params, options) {
   const isLocal = !!options.local;
   const fn = isLocal || getFunctionName(params);
-  const action = params.length && !params[0].includes('=') && params.shift() || '';
+  const action = getFunctionAction(params);
   const port = options.port || DEFAULT_PORT;
   const baseUrl = isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
-  const normalizedParams = params.map(p => p.slice(2));
+  const normalizedParams = removeDashes(params);
   const urlParams = (normalizedParams.length && '?' + normalizedParams.join('&')) || '';
 
   return new URL(baseUrl + urlParams);
+}
+
+function getFunctionAction(params) {
+  return params.length && !params[0].includes('=') && params.shift() || '';
 }
 
 function getFunctionName(args) {
@@ -141,23 +146,43 @@ function getFunctionName(args) {
   return fn;
 }
 
-function argsToOptions(args) {
-  const params = {};
-  const addParam = (key, value) => (params[key.slice(2)] = value);
+function removeDashes(params) {
+  return params.map(p => hasDashes(p) ? p.slice(2) : p);
+}
 
-  parseArgs(args, addParam);
+function hasDashes(option) {
+  return option.startsWith('--');
+}
+
+function buildOptions(args) {
+  const params = {};
+  const addParam = (option, value) => {
+    const key = hasDashes(option) ? option.slice(2) : option;
+    params[key] = value;
+  };
+
+  forEachArg(args, addParam);
 
   return params;
 }
 
-function parseArgs(args, addParam) {
-  let cursor = 0;
-
-  for (; cursor < args.length;) {
-    if (args[cursor].includes('=')) {
-      addParam(...args[cursor++].split('='));
-    } else {
-      addParam(args[cursor++], (!args[cursor] || args[cursor].startsWith('--')) ? true : args[cursor++]);
+function forEachArg(args, addParam) {
+  args.forEach(arg => {
+    const isOption = hasDashes(arg);
+    if (isOption && arg.includes('=')) {
+      addParam(...arg.split('='));
+      return;
     }
-  }
+
+    if (isOption) {
+      addParam(arg, true);
+      return;
+    }
+
+    addParam(arg);
+  });
+}
+
+function parseArgs(string) {
+  return string.split(/\s+/);
 }
