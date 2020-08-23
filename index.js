@@ -85,7 +85,7 @@ function run(args, input = process.stdin, output = process.stdout) {
     const next = nextHeader !== undefined ? parseArgs(nextHeader) : false;
 
     if (next) {
-      run(next, response, output);
+      run(next, input, output);
       return;
     }
 
