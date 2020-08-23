@@ -26,6 +26,7 @@ const cliArgs = process.argv.slice(2);
 
 switch (cliArgs[0]) {
   case '--create':
+    cliArgs.shift();
     create(cliArgs);
     break;
 
@@ -61,7 +62,7 @@ async function serve(args) {
 function create(args) {
   const options = buildOptions(args);
   const from = options.from || 'echo';
-  const name = options.create;
+  const name = args.pop();
 
   if (!name) {
     onError('Name for new function was not provided');
