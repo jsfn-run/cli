@@ -4,7 +4,33 @@ import { request as http } from 'http';
 import { request as https } from 'https';
 import { execSync as exec } from 'child_process';
 import { join, resolve, dirname } from 'path';
-import { existsSync, createReadStream } from 'fs';
+import { existsSync, createReadStream, readFileSync } from 'fs';
+
+const ansiCodes = {
+  error: '\u001b[33;1m',
+  info: '\u001b[34;1m',
+  log: '\u001b[37;1m',
+  reset: '\u001b[0m',
+};
+
+const Console = {
+  write(type, ...values) {
+    console.log(ansiCodes[type], ' ', ...values, ansiCodes.reset);
+  },
+
+  log(...args) {
+    Console.write('log', ...args);
+  },
+
+  info(...args) {
+    Console.write('info', ...args);
+  },
+
+  error(...args) {
+    Console.write('error', ...args);
+    process.exit(1);
+  },
+};
 
 // https://stackoverflow.com/a/51118243
 const __dirname = resolve(dirname(decodeURI(new URL(import.meta.url).pathname)));
@@ -17,20 +43,15 @@ const requestOptions = {
   timeout: 30_000,
 };
 
-const onError = (message) => {
-  process.stderr.write(String(message) + '\n');
-  process.exit(1);
-};
-
 const cliArgs = process.argv.slice(2);
 
 switch (cliArgs[0]) {
-  case '--create':
+  case '+create':
     cliArgs.shift();
     create(cliArgs);
     break;
 
-  case '--serve':
+  case '+serve':
     serve(cliArgs);
     break;
 
@@ -38,22 +59,36 @@ switch (cliArgs[0]) {
     run(cliArgs);
 }
 
+async function readCredentials(groupName, functionName) {
+  const filePath = join(process.cwd(), 'credentials.json');
+
+  if (existsSync(filePath)) {
+    try {
+      const credentials = JSON.parse(readFileSync(filePath).toString('utf-8'));
+      const group = credentials[groupName === 'true' ? 'default' : groupName];
+      return (group && group[functionName]) || {};
+    } catch {}
+  }
+
+  Console.error('Invalid credentials. Check if credentials.json exists and is a valid JSON file.');
+}
+
 async function serve(args) {
   const { options } = splitOptionsAndParams(args);
   const pathToIndex = join(CWD, 'index.js');
 
   if (!existsSync(pathToIndex)) {
-    onError('Cannot find index.js in ' + CWD + '. Are you in the right folder?');
+    Console.error('Cannot find index.js in ' + CWD + '. Are you in the right folder?');
   }
 
   if (!existsSync(join(CWD, 'node_modules', '@node-lambdas', 'core'))) {
-    console.log('Installing @node-lambdas/core');
+    Console.info('Installing @node-lambdas/core');
     exec('npm i --no-save @node-lambdas/core');
   }
 
   const port = options.port || DEFAULT_PORT;
   process.env.PORT = port;
-  console.log(`Starting server on ${port}`);
+  Console.info(`Starting server on ${port}`);
 
   const fn = await import(pathToIndex);
   return fn;
@@ -65,18 +100,19 @@ function create(args) {
   const name = args.pop();
 
   if (!name) {
-    onError('Name for new function was not provided');
+    Console.error('Name for new function was not provided');
     return;
   }
 
   const scriptPath = join(__dirname, 'create.sh');
   const execOptions = { stdio: 'pipe', encoding: 'utf8', cwd: process.cwd() };
 
-  console.log(exec(`$SHELL ${scriptPath} ${name} ${from}`, execOptions));
+  Console.info(exec(`$SHELL ${scriptPath} ${name} ${from}`, execOptions));
 }
 
-function run(args, input = process.stdin, output = process.stdout) {
+async function run(args, input = process.stdin, output = process.stdout) {
   const { options, params } = splitOptionsAndParams(args);
+  const credentials = options.auth ? await readCredentials(options.auth, params[0]) : null;
   const url = buildFunctionUrl(params, options);
   const stdin = options.stdin ? createReadStream(join(CWD, options.stdin)) : input;
 
@@ -92,20 +128,25 @@ function run(args, input = process.stdin, output = process.stdout) {
     response.pipe(output);
   };
 
+  if (credentials) {
+    Object.entries(credentials).forEach(([key, value]) => {
+      requestOptions.headers[key] = value;
+    });
+  }
+
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
 
-  request.on('error', onError);
+  request.on('error', (message) => Console.error(message));
   stdin.pipe(request);
 }
 
 function splitOptionsAndParams(args) {
-  const knownOptions = ['--port', '--local', '--stdin'];
   const normalArgs = normalizeArgs(args);
   const options = [];
   const params = [];
 
   normalArgs.forEach((arg) => {
-    if (knownOptions.includes(arg.split('=')[0])) {
+    if (arg.charAt(0) === '+') {
       options.push(arg);
     } else {
       params.push(arg);
@@ -150,7 +191,7 @@ function getFunctionName(args) {
   const fn = args.shift();
 
   if (!fn) {
-    onError('Function name not provided.');
+    Console.error('Function name not provided.');
   }
 
   return fn;
@@ -164,10 +205,14 @@ function hasDashes(option) {
   return option.startsWith('--');
 }
 
+function isCliOption(option) {
+  return option.charAt(0) === '+';
+}
+
 function buildOptions(args) {
   const params = {};
   const addParam = (option, value) => {
-    const key = hasDashes(option) ? option.slice(2) : option;
+    const key = hasDashes(option) ? option.slice(2) : isCliOption(option) ? option.slice(1) : option;
     params[key] = value;
   };
 
@@ -178,7 +223,7 @@ function buildOptions(args) {
 
 function forEachArg(args, addParam) {
   args.forEach((arg) => {
-    const isOption = hasDashes(arg);
+    const isOption = hasDashes(arg) || isCliOption(arg);
     if (isOption && arg.includes('=')) {
       addParam(...arg.split('='));
       return;
