@@ -55,6 +55,10 @@ switch (cliArgs[0]) {
     serve(cliArgs);
     break;
 
+  case '+info':
+    showInfo(cliArgs);
+    break;
+
   default:
     run(cliArgs);
 }
@@ -71,6 +75,61 @@ async function readCredentials(groupName, functionName) {
   }
 
   Console.error('Invalid credentials. Check if credentials.json exists and is a valid JSON file.');
+}
+
+function showInfo(args) {
+  const { options } = splitOptionsAndParams(args);
+  const url = buildFunctionUrl(['api'], options);
+  const onResponse = (response) => {
+    const chunks = [];
+    response.on('data', (chunk) => chunks.push(chunk));
+    response.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      showApiOptions(buffer.toString('utf8'));
+    });
+  };
+  const reqOptions = { ...requestOptions, method: 'OPTIONS' };
+  const request = (url.protocol === 'http:' ? http : https)(url, reqOptions, onResponse);
+  request.end();
+}
+
+function showApiOptions(json) {
+  try {
+    const actionList = JSON.parse(json);
+
+    actionList.forEach((action) => {
+      Console.info('/' + action.name);
+      console.log(
+        ' ',
+        ansiCodes.log,
+        'Input:',
+        ansiCodes.info,
+        action.input,
+        ansiCodes.log,
+        '\tOutput:',
+        ansiCodes.info,
+        action.output,
+        ansiCodes.reset,
+      );
+
+      if (action.options.length) {
+        console.log(' ', ansiCodes.error, 'Options', ansiCodes.reset);
+        action.options.forEach((option) => {
+          console.log(' ', ansiCodes.log, '--' + option, ansiCodes.reset);
+        });
+      }
+
+      if (action.credentials.length) {
+        console.log(' ', ansiCodes.error, 'Credentials', ansiCodes.reset);
+        action.credentials.forEach((credential) => {
+          console.log(' ', ansiCodes.log, credential, ansiCodes.reset);
+        });
+      }
+      console.log('\n');
+    });
+  } catch (error) {
+    Console.error("I'm unable to fetch API details:", error.message);
+  }
 }
 
 async function serve(args) {
