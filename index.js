@@ -84,6 +84,11 @@ function showInfo(args) {
   const urlParams = options.local ? ['api'] : [params[0], 'api'];
   const url = buildFunctionUrl(urlParams, options);
   const onResponse = (response) => {
+    if (response.statusCode !== 200) {
+      Console.error('Function not found');
+      return;
+    }
+
     const chunks = [];
     response.on('data', (chunk) => chunks.push(chunk));
     response.on('end', () => {
@@ -109,7 +114,7 @@ function showApiOptions(json, options, params) {
     console.log('');
     actionList.forEach((action) => {
       console.log(
-        colors.error + (action.default ? '*' : '>') + ' fn ' + functionName + ' ' + colors.info + action.name + colors.log,
+        colors.error + (action.default ? '*' : ' ') + ' fn ' + functionName + ' ' + action.name + colors.log,
         Object.entries(action.options)
           .map(([key, value]) => ' --' + key + '=<' + value + '>')
           .join(' ') + colors.reset,
@@ -119,10 +124,10 @@ function showApiOptions(json, options, params) {
         console.log('\n' + colors.log + action.description + colors.reset);
       }
 
-      console.log(colors.log + action.input + ' => ' + action.output + colors.reset);
+      console.log(colors.error + 'Format: ' + colors.log + action.input + ' => ' + action.output + colors.reset);
 
       if (action.credentials.length) {
-        console.log(colors.error + '\nCredentials:\n  ' + colors.log + action.credentials.join(', ') + colors.reset);
+        console.log(colors.error + 'Credentials: ' + colors.log + action.credentials.join(', ') + colors.reset);
       }
 
       console.log('');
@@ -218,7 +223,7 @@ function splitOptionsAndParams(args) {
 function normalizeArgs(args) {
   const params = [];
   const addParam = (key, value) => params.push(value !== undefined ? key + '=' + value : key);
-  args = args.map((arg) => (arg.charAt(0) === '@' ? '--stdin=' + arg.slice(1) : arg));
+  args = args.map((arg) => (arg.charAt(0) === '@' ? '+stdin=' + arg.slice(1) : arg));
 
   forEachArg(args, addParam);
 
