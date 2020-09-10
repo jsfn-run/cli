@@ -88,26 +88,28 @@ function showInfo(args) {
     response.on('data', (chunk) => chunks.push(chunk));
     response.on('end', () => {
       const buffer = Buffer.concat(chunks);
-      showApiOptions(buffer.toString('utf8'), options);
+      showApiOptions(buffer.toString('utf8'), options, params);
     });
   };
   const reqOptions = { ...requestOptions, method: 'OPTIONS' };
-  console.log(url, reqOptions);
+
   const request = (url.protocol === 'http:' ? http : https)(url, reqOptions, onResponse);
   request.end();
 }
 
-function showApiOptions(json, options) {
+function showApiOptions(json, options, params) {
   if (options.json) {
     return console.log(json);
   }
+
+  const functionName = options.local ? '+local' : params[0];
 
   try {
     const actionList = JSON.parse(json);
     console.log('');
     actionList.forEach((action) => {
       console.log(
-        colors.error + '> fn ' + (action.default ? '*' : '') + colors.info + action.name + colors.log,
+        colors.error + '> fn ' + functionName + (action.default ? '*' : '') + colors.info + action.name + colors.log,
         Object.entries(action.options)
           .map(([key, value]) => ' --' + key + '=<' + value + '>')
           .join(' ') + colors.reset,
