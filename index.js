@@ -6,7 +6,9 @@ import { execSync as exec } from 'child_process';
 import { join, resolve, dirname } from 'path';
 import { existsSync, createReadStream, readFileSync } from 'fs';
 
-const ansiCodes = {
+const cloudDomain = process.env.FN_DOMAIN || 'jsfn.run';
+
+const colors = {
   error: '\u001b[33;1m',
   info: '\u001b[34;1m',
   log: '\u001b[37;1m',
@@ -15,7 +17,7 @@ const ansiCodes = {
 
 const Console = {
   write(type, ...values) {
-    console.log(ansiCodes[type], ' ', ...values, ansiCodes.reset);
+    console.log(colors[type], ' ', ...values, colors.reset);
   },
 
   log(...args) {
@@ -85,7 +87,7 @@ function showInfo(args) {
     response.on('data', (chunk) => chunks.push(chunk));
     response.on('end', () => {
       const buffer = Buffer.concat(chunks);
-      showApiOptions(buffer.toString('utf8'));
+      showApiOptions(buffer.toString('utf8'), options);
     });
   };
   const reqOptions = { ...requestOptions, method: 'OPTIONS' };
@@ -93,35 +95,32 @@ function showInfo(args) {
   request.end();
 }
 
-function showApiOptions(json) {
+function showApiOptions(json, options) {
+  if (options.json) {
+    return console.log(json);
+  }
+
   try {
     const actionList = JSON.parse(json);
-
+    console.log('');
     actionList.forEach((action) => {
-      console.log(ansiCodes.info + action.name + ansiCodes.reset);
       console.log(
-        '-- Input: ' +
-          ansiCodes.info +
-          action.input +
-          ansiCodes.reset +
-          ' -- Output: ' +
-          ansiCodes.info +
-          action.output +
-          ansiCodes.reset,
+        colors.error + '> fn ' + (action.default ? '*' : '') + colors.info + action.name + colors.log,
+        Object.entries(action.options)
+          .map(([key, value]) => ' --' + key + '=<' + value + '>')
+          .join(' ') + colors.reset,
       );
-      if (action.options.length) {
-        console.log(ansiCodes.error + 'Options' + ansiCodes.reset);
-        action.options.forEach((option) => {
-          console.log(ansiCodes.log, '  --' + option, ansiCodes.reset);
-        });
+
+      if (action.description) {
+        console.log('\n' + colors.log + action.description + colors.reset);
       }
+
+      console.log(colors.log + action.input + ' => ' + action.output + colors.reset);
 
       if (action.credentials.length) {
-        console.log(ansiCodes.error + 'Credentials' + ansiCodes.reset);
-        action.credentials.forEach((credential) => {
-          console.log(' ', ansiCodes.log, credential, ansiCodes.reset);
-        });
+        console.log(colors.error + '\nCredentials:\n  ' + colors.log + action.credentials.join(', ') + colors.reset);
       }
+
       console.log('');
     });
   } catch (error) {
@@ -236,7 +235,7 @@ function getBaseUrl(options, params) {
   const action = getAction(params);
   const port = options.port || DEFAULT_PORT;
 
-  return isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.jsfn.run/${action}`;
+  return isLocal ? `http://localhost:${port}/${action}` : `https://${fn}.${cloudDomain}/${action}`;
 }
 
 function getAction(params) {
