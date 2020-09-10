@@ -80,8 +80,9 @@ async function readCredentials(groupName, functionName) {
 }
 
 function showInfo(args) {
-  const { options } = splitOptionsAndParams(args);
-  const url = buildFunctionUrl(['api'], options);
+  const { options, params } = splitOptionsAndParams(args);
+  const urlParams = options.local ? ['api'] : [params[0], 'api'];
+  const url = buildFunctionUrl(urlParams, options);
   const onResponse = (response) => {
     const chunks = [];
     response.on('data', (chunk) => chunks.push(chunk));
@@ -91,6 +92,7 @@ function showInfo(args) {
     });
   };
   const reqOptions = { ...requestOptions, method: 'OPTIONS' };
+  console.log(url, reqOptions);
   const request = (url.protocol === 'http:' ? http : https)(url, reqOptions, onResponse);
   request.end();
 }
