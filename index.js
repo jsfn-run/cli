@@ -109,7 +109,7 @@ function showApiOptions(json, options, params) {
     console.log('');
     actionList.forEach((action) => {
       console.log(
-        colors.error + '> fn ' + functionName + (action.default ? '*' : '') + colors.info + action.name + colors.log,
+        colors.error + (action.default ? '*' : '>') + ' fn ' + functionName + ' ' + colors.info + action.name + colors.log,
         Object.entries(action.options)
           .map(([key, value]) => ' --' + key + '=<' + value + '>')
           .join(' ') + colors.reset,
