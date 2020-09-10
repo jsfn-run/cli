@@ -98,34 +98,31 @@ function showApiOptions(json) {
     const actionList = JSON.parse(json);
 
     actionList.forEach((action) => {
-      Console.info('/' + action.name);
+      console.log(ansiCodes.info + action.name + ansiCodes.reset);
       console.log(
-        ' ',
-        ansiCodes.log,
-        'Input:',
-        ansiCodes.info,
-        action.input,
-        ansiCodes.log,
-        '\tOutput:',
-        ansiCodes.info,
-        action.output,
-        ansiCodes.reset,
+        '-- Input: ' +
+          ansiCodes.info +
+          action.input +
+          ansiCodes.reset +
+          ' -- Output: ' +
+          ansiCodes.info +
+          action.output +
+          ansiCodes.reset,
       );
-
       if (action.options.length) {
-        console.log(' ', ansiCodes.error, 'Options', ansiCodes.reset);
+        console.log(ansiCodes.error + 'Options' + ansiCodes.reset);
         action.options.forEach((option) => {
-          console.log(' ', ansiCodes.log, '--' + option, ansiCodes.reset);
+          console.log(ansiCodes.log, '  --' + option, ansiCodes.reset);
         });
       }
 
       if (action.credentials.length) {
-        console.log(' ', ansiCodes.error, 'Credentials', ansiCodes.reset);
+        console.log(ansiCodes.error + 'Credentials' + ansiCodes.reset);
         action.credentials.forEach((credential) => {
           console.log(' ', ansiCodes.log, credential, ansiCodes.reset);
         });
       }
-      console.log('\n');
+      console.log('');
     });
   } catch (error) {
     Console.error("I'm unable to fetch API details:", error.message);
