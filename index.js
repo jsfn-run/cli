@@ -194,10 +194,10 @@ async function run(args, input = process.stdin, output = process.stdout) {
 
   if (credentials) {
     Object.entries(credentials).forEach(([key, value]) => {
-      requestOptions.headers[key] = value;
+      requestOptions.headers['Fn-' + key] = value;
     });
   }
-
+  console.log(requestOptions);
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
 
   request.on('error', (message) => Console.error(message));
