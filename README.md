@@ -10,7 +10,7 @@ How to create a lambda project:
 fn +create [name]
 
 # create using another function as template
-fn +create [name] from [existing-function]
+fn +create [name] +from=[template-function]
 ```
 
 ## Serve

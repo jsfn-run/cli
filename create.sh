@@ -4,11 +4,12 @@ git clone git@github.com:node-lambdas/$2.git $1
 cd $1
 
 # OSX
-sed -i '' -e "s/$2/$1/" package.json
-sed -i '' -e "s/$2/$1/" service.json
-
+if [`uname` = 'Darwin']; then
+  sed -i '' -e "s/$2/$1/" package.json && sed -i '' -e "s/$2/$1/" service.json
 # Linux
-# sed -i "s/echo/$1/" package.json
+else
+  sed -i "s/$2/$1/" package.json && sed -i "s/$2/$1/" service.json
+fi
 
 rm -rf .git
 git init
