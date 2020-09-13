@@ -26,8 +26,7 @@ async function readCredentials(options, params) {
   );
 }
 
-export async function runFunction(args, input = process.stdin, output = process.stdout) {
-  const { options, params } = parseOptionsAndParams(args);
+export async function runFunction(options, params, input = process.stdin, output = process.stdout) {
   const credentials = options.auth ? await readCredentials(options, params) : null;
   const url = buildFunctionUrl(options, params);
   const stdin = options.stdin ? createReadStream(join(CWD, options.stdin)) : input;
@@ -37,7 +36,7 @@ export async function runFunction(args, input = process.stdin, output = process.
     const next = nextHeader !== undefined ? parseArgs(nextHeader) : false;
 
     if (next) {
-      runFunction(next, input, output);
+      runFunction(options, next, input, output);
       return;
     }
 

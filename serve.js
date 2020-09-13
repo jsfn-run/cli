@@ -5,8 +5,7 @@ import { existsSync } from 'fs';
 
 const CWD = process.cwd();
 
-export async function serve(args) {
-  const { options } = parseOptionsAndParams(args);
+export async function serve(options) {
   const pathToIndex = join(CWD, 'index.js');
 
   if (!existsSync(pathToIndex)) {

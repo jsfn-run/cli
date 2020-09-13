@@ -1,9 +1,8 @@
 import { execSync as exec } from 'child_process';
 import { join } from 'path';
-import { Console, parseOptionsAndParams } from './common.js';
+import { Console } from './common.js';
 
-export function createProject(args, sourceDirectory) {
-  const { options, params } = parseOptionsAndParams(args);
+export function createProject(options, params, sourceDirectory) {
   const from = options.from || 'echo';
   const name = params[0];
 

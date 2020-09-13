@@ -2,8 +2,7 @@ import { buildFunctionUrl, baseRequestOptions, Console, Colors, parseOptionsAndP
 import { request as http } from 'http';
 import { request as https } from 'https';
 
-export function printFunctionApi(args) {
-  const { options, params } = parseOptionsAndParams(args);
+export function printFunctionApi(options, params) {
   const urlParams = options.local ? ['api'] : [params[0], 'api'];
   const url = buildFunctionUrl(options, urlParams);
 

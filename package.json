@@ -5,6 +5,7 @@
   "bin": {
     "fn": "./index.js"
   },
+  "main": "./exports.js",
   "publishConfig": {
     "access": "public"
   },
