@@ -45,7 +45,8 @@ export async function runFunction(options, params, input = process.stdin, output
 
   const requestOptions = { ...baseRequestOptions };
   if (credentials) {
-    Object.entries(credentials).forEach(([key, value]) => (requestOptions.headers['Fn-' + key] = value));
+    const token = Buffer.from(JSON.stringify(credentials), 'utf-8').toString('base64');
+    requestOptions.headers.authorization = 'Bearer ' + token;
   }
 
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
