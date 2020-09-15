@@ -44,6 +44,11 @@ cat file.txt | fn +local +port=2000
 
 You can [see the available functions](https://github.com/node-lambdas/node-lambdas) and read more in the index repository.
 
+## Run without input pipe
+
+You can pass a data option to `fn` instead of consuming data from _stdin_.
+Use `+data='input data'` to bypass stdin.
+
 ## API Authentication
 
 Some functions need credentials in order to run API calls.

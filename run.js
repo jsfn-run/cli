@@ -52,6 +52,12 @@ export async function runFunction(options, params, input = process.stdin, output
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
 
   request.on('error', (message) => Console.error(message));
+  if (options.data) {
+    request.write(options.data);
+    request.end();
+    return;
+  }
+
   stdin.pipe(request);
 }
 
