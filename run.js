@@ -1,8 +1,8 @@
+import { createReadStream, existsSync, readFileSync } from 'fs';
 import { request as http } from 'http';
 import { request as https } from 'https';
-import { existsSync, createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
-import { baseRequestOptions, buildFunctionUrl, Console, parseOptionsAndParams } from './common.js';
+import { baseRequestOptions, buildFunctionUrl, Console } from './common.js';
 
 const CWD = process.cwd();
 
@@ -38,6 +38,12 @@ export async function runFunction(options, params, input = process.stdin, output
     if (next) {
       runFunction(options, next, input, output);
       return;
+    }
+
+    if (response.statusCode !== 200) {
+      output.write(response.statusCode + ' ' + response.statusMessage + '\n');
+      response.pipe(process.stderr);
+      process.exit(1);
     }
 
     response.pipe(output);
