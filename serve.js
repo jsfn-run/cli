@@ -1,7 +1,7 @@
 import { execSync as exec } from 'child_process';
-import { Console, DEFAULT_PORT, parseOptionsAndParams } from './common.js';
-import { join } from 'path';
 import { existsSync } from 'fs';
+import { join } from 'path';
+import { Console, DEFAULT_PORT } from './common.js';
 
 const CWD = process.cwd();
 

@@ -91,7 +91,8 @@ export function getBaseUrl(options, params) {
 }
 
 function getActionName(options, params) {
-  const param = options.local ? params[0] : params[1];
+  const paramsWithoutOptions = params.filter((p) => !hasDashes(p));
+  const param = options.local ? paramsWithoutOptions[0] : paramsWithoutOptions[1];
   return param || '';
 }
 

@@ -1,6 +1,6 @@
-import { buildFunctionUrl, baseRequestOptions, Console, Colors, parseOptionsAndParams } from './common.js';
 import { request as http } from 'http';
 import { request as https } from 'https';
+import { baseRequestOptions, buildFunctionUrl, Colors, Console } from './common.js';
 
 export function printFunctionApi(options, params) {
   const urlParams = options.local ? ['api'] : [params[0], 'api'];

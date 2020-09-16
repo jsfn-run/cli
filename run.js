@@ -55,6 +55,10 @@ export async function runFunction(options, params, input = process.stdin, output
     requestOptions.headers.authorization = 'Bearer ' + token;
   }
 
+  if (options.debug) {
+    Console.log(String(url), requestOptions);
+  }
+
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
 
   request.on('error', (message) => Console.error(message));
