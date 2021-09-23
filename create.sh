@@ -1,6 +1,6 @@
 set -xe
 
-git clone git@github.com:node-lambdas/$2.git $1
+git clone https://github.com/node-lambdas/$2.git $1
 cd $1
 
 # OSX
