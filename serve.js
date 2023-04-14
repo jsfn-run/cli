@@ -17,8 +17,7 @@ export async function serve(options) {
     exec('npm i --no-save @node-lambdas/core');
   }
 
-  const port = options.port || DEFAULT_PORT;
-  process.env.PORT = port;
+  const port = Number(options.port || process.env.PORT || DEFAULT_PORT);
   Console.info(`Starting server on ${port}`);
 
   return await import(pathToIndex);
