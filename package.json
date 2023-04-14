@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "bin": {
-    "fn": "./index.js",
+    "fn": "./index.js"
+  },
+  "scripts": {
     "test": "echo true",
     "build": "echo true"
   },
