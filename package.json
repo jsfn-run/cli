@@ -1,9 +1,11 @@
 {
   "name": "@node-lambdas/cli",
-  "version": "1.2.0",
+  "version": "0.0.0",
   "type": "module",
   "bin": {
-    "fn": "./index.js"
+    "fn": "./index.js",
+    "test": "echo true",
+    "build": "echo true"
   },
   "main": "./exports.js",
   "publishConfig": {
