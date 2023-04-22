@@ -1,16 +1,17 @@
 # @node-lambdas/cli
 
-This CLI can be used to create, execute or develop new lambdas.
+This CLI can be used to test or develop new cloud functions.
 
 ## Create
+
+A cloud function is just a regular Node.js project.
+The only requirement is to have an index file with a default export.
 
 How to create a lambda project:
 
 ```bash
-fn +create [name]
-
-# create using another function as template
-fn +create [name] +from=[template-function]
+mkdir new-function
+cd new-function && npm init -y
 ```
 
 ## Serve
@@ -22,7 +23,7 @@ cd path/to/project
 fn +serve
 
 # use a different port
-fn +serve port=2000
+fn +serve +port=2000
 ```
 
 ## Run
@@ -42,12 +43,24 @@ cat file.txt | fn +local
 cat file.txt | fn +local +port=2000
 ```
 
-You can [see the available functions](https://github.com/node-lambdas/node-lambdas) and read more in the index repository.
+You can [see the available functions](https://github.com/node-lambdas/discover) and read more in the index repository.
 
 ## Run without input pipe
 
-You can pass a data option to `fn` instead of consuming data from _stdin_.
-Use `+data='input data'` to bypass stdin.
+Usually you would use the syntax `a | fn b` to pipe data into a function.
+You can also add input options to `fn` instead, and bypass _stdin_.
+
+Use `+data='input data'` to send the input data instead.
+You can also read from a file, using the `+stdin=path/to/file`, or the shortcut, `@path/to/file`.
+
+For example:
+
+```bash
+fn data='hello' | fn base64
+fn @input.txt | fn sha 512
+fn +stdin=image.png | fn resize 1024x768
+
+```
 
 ## API Authentication
 
@@ -91,3 +104,13 @@ echo 'let me in' | fn +auth function-name
 # Using both default and 'bob-credentials' to pipe from one function call to another. The third call will not use any credentials
 echo 'let me in' | fn +auth function-name | fn +auth=bob-credentials function-name | fn another-name
 ```
+
+## All options
+
+| option           | description                                                              |
+| ---------------- | ------------------------------------------------------------------------ |
+| `+auth=[name]`  | Name of an authentication group to use from './credentials.json'         |
+| `+serve`         | Serve a function from current folder for local testing                   |
+| `+port=[number]` | The http port to use when calling a local server with a running function |
+| `+data=[data]`   | Use the data passed as argument instead of `stdin` for next step         |
+|

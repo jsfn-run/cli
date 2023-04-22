@@ -2,14 +2,17 @@
   "name": "@node-lambdas/cli",
   "version": "0.0.0",
   "type": "module",
+  "prettier": "@cloud-cli/prettier-config",
   "bin": {
-    "fn": "./index.js"
+    "fn": "./cli.js"
   },
   "scripts": {
     "test": "echo true",
-    "build": "echo true"
+    "build": "npm run tsc && npm run rollup",
+    "tsc": "tsc",
+    "rollup": "rollup -c"
   },
-  "main": "./exports.js",
+  "main": "./index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -21,5 +24,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/node-lambdas/cli.git"
+  },
+  "devDependencies": {
+    "@cloud-cli/exec": "^1.1.0",
+    "@cloud-cli/jest-config": "^1.0.0",
+    "@cloud-cli/prettier-config": "^1.0.0",
+    "@cloud-cli/rollup-config": "^1.0.0",
+    "@cloud-cli/typescript-config": "^1.0.1",
+    "typescript": "^5.0.4"
   }
 }

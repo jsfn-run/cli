@@ -1,8 +1,8 @@
 import { createReadStream, existsSync, readFileSync } from 'fs';
-import { request as http } from 'http';
+import { request as http, RequestOptions } from 'http';
 import { request as https } from 'https';
 import { join } from 'path';
-import { baseRequestOptions, buildFunctionUrl, Console } from './common.js';
+import { baseRequestOptions, buildFunctionUrl, Console } from './common.mjs';
 
 const CWD = process.cwd();
 
@@ -49,7 +49,7 @@ export async function runFunction(options, params, input = process.stdin, output
     response.pipe(output);
   };
 
-  const requestOptions = { ...baseRequestOptions };
+  const requestOptions: RequestOptions = { ...baseRequestOptions };
   if (credentials) {
     const token = Buffer.from(JSON.stringify(credentials), 'utf-8').toString('base64');
     requestOptions.headers.authorization = 'Bearer ' + token;

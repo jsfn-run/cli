@@ -25,14 +25,17 @@ export function parseOptionsAndParams(args) {
     }
   });
 
-  params.sort((a, b) => (hasDashes(b) ? -1 : 0));
+  params.sort((_a, b) => (hasDashes(b) ? -1 : 0));
 
   return { options: createOptionMap(options), params };
 }
 
-function createOptionMap(args) {
+function createOptionMap(args: string[]): Record<string, any> {
   const params = {};
   const addParam = (option, value) => {
+    // --option => option
+    // +option => option
+    // option => option
     const key = hasDashes(option) ? option.slice(2) : isCliOption(option) ? option.slice(1) : option;
     params[key] = value;
   };
@@ -44,25 +47,26 @@ function createOptionMap(args) {
 
 export function normalizeArgs(args) {
   const argsWithStdIn = args.map((arg) => (arg.charAt(0) === '@' ? '+stdin=' + arg.slice(1) : arg));
-  return mapArguments(argsWithStdIn, (key, value) => (value !== undefined ? key + '=' + value : key));
+  return mapArguments(argsWithStdIn, (key, value) => (value !== undefined ? `${key}=${value}` : key));
 }
 
-export function mapArguments(args, map) {
+export function mapArguments(args: string[], mapFn: (key: string, value?: string | boolean) => any) {
   return args.map((arg) => {
     const isOption = hasDashes(arg) || isCliOption(arg);
     if (isOption && arg.includes('=')) {
-      return map(...arg.split('='));
+      let [key, value] = arg.split('=');
+      return mapFn(key, value);
     }
 
     if (isOption) {
-      return map(arg, true);
+      return mapFn(arg, true);
     }
 
-    return map(arg);
+    return mapFn(arg);
   });
 }
 
-export function removeDashes(params) {
+export function removeDashes(params: string[]) {
   return params.map((p) => (hasDashes(p) ? p.slice(2) : p));
 }
 
