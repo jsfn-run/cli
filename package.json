@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo true",
-    "build": "npm run tsc && npm run rollup",
+    "build": "npm run tsc && npm run rollup && rm dist/*.js",
     "tsc": "tsc",
     "rollup": "rollup -c"
   },
@@ -32,5 +32,8 @@
     "@cloud-cli/rollup-config": "^1.0.0",
     "@cloud-cli/typescript-config": "^1.0.1",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@node-lambdas/core": "^1.10.1"
   }
 }

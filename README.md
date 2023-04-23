@@ -109,8 +109,8 @@ echo 'let me in' | fn +auth function-name | fn +auth=bob-credentials function-na
 
 | option           | description                                                              |
 | ---------------- | ------------------------------------------------------------------------ |
-| `+auth=[name]`  | Name of an authentication group to use from './credentials.json'         |
+| `+auth=[name]`   | Name of an authentication group to use from './credentials.json'         |
 | `+serve`         | Serve a function from current folder for local testing                   |
 | `+port=[number]` | The http port to use when calling a local server with a running function |
 | `+data=[data]`   | Use the data passed as argument instead of `stdin` for next step         |
-|
+| `+info name`     | Shows more details about a cloud function                                |

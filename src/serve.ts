@@ -1,11 +1,15 @@
-import { execSync as exec } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
-import { Console, DEFAULT_PORT } from "./common.mjs";
+import { DEFAULT_PORT } from "./common.js";
+import { Console, lambda } from '@node-lambdas/core';
 
 const CWD = process.cwd();
 
-export async function serve(options) {
+interface Options {
+  port?: number;
+}
+
+export async function serve(options: Options) {
   const pathToIndex = join(CWD, "index.js");
 
   if (!existsSync(pathToIndex)) {
@@ -14,13 +18,9 @@ export async function serve(options) {
     );
   }
 
-  if (!existsSync(join(CWD, "node_modules", "@node-lambdas", "core"))) {
-    Console.info("Installing @node-lambdas/core");
-    exec("npm i --no-save @node-lambdas/core");
-  }
-
   const port = Number(options.port || process.env.PORT || DEFAULT_PORT);
   Console.info(`Starting server on ${port}`);
 
-  return await import(pathToIndex);
+  const fn = await import(pathToIndex);
+  return lambda(fn.default);
 }
