@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { main } from './main.mjs';
+import { main } from './index.js';
 
 main(process.argv.slice(2));
