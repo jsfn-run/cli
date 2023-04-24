@@ -137,3 +137,4 @@ echo 'let me in' | fn +auth function-name | fn +auth=bob-credentials function-na
 | `+port=[number]` | The http port to use when calling a local server with a running function |
 | `+data=[data]`   | Use the data passed as argument instead of `stdin` for next step         |
 | `+info name`     | Shows more details about a cloud function                                |
+| `+json`          | Show cloud function API as JSON                                          |
