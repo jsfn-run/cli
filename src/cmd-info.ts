@@ -1,6 +1,6 @@
+import { ApiDescription } from '@node-lambdas/core';
 import * as http from 'http';
 import * as https from 'https';
-// import { ApiDescription } from '@node-lambdas/core';
 import { baseRequestOptions, readStream } from './common.js';
 import { CliInputs } from './options.js';
 import { buildFunctionUrl } from './function-url.js';
@@ -45,7 +45,7 @@ function showApiOptions(json: string, inputs: CliInputs) {
   }
 
   const functionName = inputs.options.local ? '+local' : inputs.name;
-  const actionList = JSON.parse(json); // as ApiDescription[];
+  const actionList = JSON.parse(json) as ApiDescription[];
 
   if (!Array.isArray(actionList)) {
     throw new Error('Invalid response from function server');
