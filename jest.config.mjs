@@ -1,6 +1,3 @@
 import config from '@cloud-cli/jest-config';
 
-export default {
-  ...config,
-  verbose: true,
-};
+export default { ...config };
