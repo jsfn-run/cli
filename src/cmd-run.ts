@@ -2,9 +2,10 @@ import { createReadStream, existsSync, readFileSync } from 'fs';
 import { request as http, RequestOptions } from 'http';
 import { request as https } from 'https';
 import { join } from 'path';
-import { baseRequestOptions, buildFunctionUrl } from './common.js';
-import { Console, Response } from '@node-lambdas/core';
+import { baseRequestOptions } from './common.js';
+import { Console } from '@node-lambdas/core';
 import { CliInputs } from './options.js';
+import { buildFunctionUrl } from './function-url.js';
 
 const CWD = process.cwd();
 
@@ -73,5 +74,3 @@ async function readCredentials({ options, params }) {
     `Invalid credentials: ${groupName}/${functionName}. Check if credentials.json exists and is a valid JSON file.`,
   );
 }
-
-// function parseArgs(string) { return string.split(/\s+/); }

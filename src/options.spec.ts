@@ -2,20 +2,24 @@ import { parseOptionsAndParams } from './options';
 
 describe('read options from an array of strings', () => {
   it('should read boolean inputs', () => {
-    const input = ['+option', 'name', '--param'];
+    // fn +option name --param --foo=1 foo
+    const input = ['+option', 'name', '--param', '--foo=1', 'foo'];
     const expected = {
-      names: [],
+      name: 'foo',
+      inputs: [],
       options: { option: 'name' },
-      params: { param: true }
+      params: { param: true, foo: '1' }
     };
 
     expect(parseOptionsAndParams(input)).toEqual(expected);
   });
 
   it('should read a file reference as input', () => {
+    // fn @file.txt run
     const input = ['@file.txt', 'run'];
     const expected = {
-      names: ['run'],
+      name: 'run',
+      inputs: [],
       options: { stdin: 'file.txt' },
       params: {}
     };
@@ -24,9 +28,11 @@ describe('read options from an array of strings', () => {
   });
 
   it('should read function parameters and options in separated objects', () => {
+    // fn +debug +port=123 +stdin file.txt skip-me --key=value --flag --name bob something else
     const input = ['skip-me', '+debug', '+port=123', '+stdin', 'file.txt', '--key=value', '--flag', '--name', 'bob', 'something', 'else'];
     const expected = {
-      names: ['skip-me', 'something', 'else'],
+      name: 'skip-me',
+      inputs: ['something', 'else'],
       options: {
         debug: true,
         port: '123',

@@ -1,5 +1,6 @@
 export interface CliInputs {
-  names: string[];
+  name: string;
+  inputs: string[];
   options: Record<string, string | boolean>;
   params: Record<string, string | boolean>;
 }
@@ -7,7 +8,8 @@ export interface CliInputs {
 export function parseOptionsAndParams(args: string[]) {
   args = normalizeArgs(args);
   const output: CliInputs = {
-    names: [],
+    name: '',
+    inputs: [],
     params: {},
     options: {},
   };
@@ -26,7 +28,13 @@ export function parseOptionsAndParams(args: string[]) {
       continue;
     }
 
-    output.names.push(current);
+    if (!output.name) {
+      output.name = current;
+      i++;
+      continue;
+    }
+
+    output.inputs.push(current);
     i++;
   }
 

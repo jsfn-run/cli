@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import { join } from "path";
-import { DEFAULT_PORT } from "./common.js";
+import { defaultPort } from "./common.js";
 import { Console, lambda } from '@node-lambdas/core';
 
 const CWD = process.cwd();
@@ -18,7 +18,7 @@ export async function serve(options: Options) {
     );
   }
 
-  const port = Number(options.port || process.env.PORT || DEFAULT_PORT);
+  const port = Number(options.port || process.env.PORT || defaultPort);
   Console.info(`Starting server on ${port}`);
 
   const fn = await import(pathToIndex);
