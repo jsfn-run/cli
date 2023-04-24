@@ -1,9 +1,10 @@
 const mockRequest = jest.fn();
 const mockHttpsRequest = jest.fn();
+
 jest.mock('http', () => ({ request: mockRequest }));
 jest.mock('https', () => ({ request: mockHttpsRequest }));
 
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import { CliInputs } from './options';
 import { printFunctionApi } from './cmd-info';
 import { baseRequestOptions } from './common';

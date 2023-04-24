@@ -1,5 +1,6 @@
-import http from 'http';
-import https from 'https';
+import * as http from 'http';
+import * as https from 'https';
+// import { ApiDescription } from '@node-lambdas/core';
 import { baseRequestOptions, readStream } from './common.js';
 import { CliInputs } from './options.js';
 import { buildFunctionUrl } from './function-url.js';
@@ -43,9 +44,8 @@ function showApiOptions(json: string, inputs: CliInputs) {
     return console.log(json);
   }
 
-  const functionName = inputs.options.local ? '+local=1' : inputs.name;
-
-  const actionList = JSON.parse(json);
+  const functionName = inputs.options.local ? '+local' : inputs.name;
+  const actionList = JSON.parse(json); // as ApiDescription[];
 
   if (!Array.isArray(actionList)) {
     throw new Error('Invalid response from function server');
@@ -71,8 +71,8 @@ function showApiOptions(json: string, inputs: CliInputs) {
     if (action.credentials?.length) {
       output.push(Colors.error + 'credentials: ' + Colors.log + action.credentials.join(', ') + Colors.reset);
     }
-    output.push('');
+    output.push('\n');
   });
 
-  console.log(output.join('\n') + '\n');
+  console.log(output.join('\n'));
 }

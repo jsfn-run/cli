@@ -2,8 +2,8 @@ import { createReadStream, existsSync, readFileSync } from 'fs';
 import { request as http, RequestOptions } from 'http';
 import { request as https } from 'https';
 import { join } from 'path';
-import { baseRequestOptions } from './common.js';
 import { Console } from '@node-lambdas/core';
+import { baseRequestOptions } from './common.js';
 import { CliInputs } from './options.js';
 import { buildFunctionUrl } from './function-url.js';
 
@@ -36,6 +36,7 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   };
 
   const requestOptions: RequestOptions = { ...baseRequestOptions };
+
   if (credentials) {
     const token = Buffer.from(JSON.stringify(credentials), 'utf-8').toString('base64');
     requestOptions.headers.authorization = 'Bearer ' + token;
@@ -44,8 +45,8 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   Console.debug(String(url), requestOptions);
 
   const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
-
   request.on('error', (message) => Console.error(message));
+
   if (options.data) {
     request.write(options.data);
     request.end();

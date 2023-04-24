@@ -5,6 +5,7 @@ export interface CliInputs {
   params: Record<string, string | boolean>;
 }
 
+const knownBooleans = ['local'];
 export function parseOptionsAndParams(args: string[]) {
   args = normalizeArgs(args);
   const output: CliInputs = {
@@ -19,12 +20,13 @@ export function parseOptionsAndParams(args: string[]) {
     const next = args[i + 1];
 
     if (hasDashes(current)) {
-      i += readValue(output.params, current.slice(2), next, hasDashes);
+      i += readValue(output.params, current.slice(2), next, () => hasDashes(next));
       continue;
     }
 
     if (hasPlusSign(current)) {
-      i += readValue(output.options, current.slice(1), next, hasPlusSign);
+      const currentName = current.slice(1);
+      i += readValue(output.options, currentName, next, () => knownBooleans.includes(currentName) || hasPlusSign(next));
       continue;
     }
 
@@ -41,14 +43,14 @@ export function parseOptionsAndParams(args: string[]) {
   return output;
 }
 
-function readValue(target: any, current: string, next: string, testNext: (s: string) => boolean) {
+function readValue(target: any, current: string, next: string, isBooleanOption: () => boolean) {
   if (current.includes('=')) {
     const [key, value] = current.split('=');
     target[key] = value;
     return 1;
   }
 
-  if (next === undefined || testNext(next)) {
+  if (next === undefined || isBooleanOption()) {
     target[current] = true;
     return 1;
   }

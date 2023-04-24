@@ -16,3 +16,7 @@ export function readStream(stream: any): Promise<Buffer> {
     });
   });
 }
+
+export function loadModule(path: string) {
+  return import(path);
+}

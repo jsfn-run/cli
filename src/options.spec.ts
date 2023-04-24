@@ -2,12 +2,12 @@ import { parseOptionsAndParams } from './options';
 
 describe('read options from an array of strings', () => {
   it('should read boolean inputs', () => {
-    // fn +option name --param --foo=1 foo
-    const input = ['+option', 'name', '--param', '--foo=1', 'foo'];
+    // fn +option name +local --param --foo=1 foo
+    const input = ['+option', 'name', '+local', '--param', '--foo=1', 'foo'];
     const expected = {
       name: 'foo',
       inputs: [],
-      options: { option: 'name' },
+      options: { option: 'name', local: true },
       params: { param: true, foo: '1' }
     };
 
