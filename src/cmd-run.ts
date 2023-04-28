@@ -57,9 +57,9 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
 }
 
 async function readCredentials(inputs: CliInputs) {
-  const { options, params, name } = inputs;
+  const { options, name } = inputs;
   const filePath = join(CWD, 'credentials.json');
-  const propertyPath = String(options.auth) === 'true' ? ['default', name] : options.auth.trim().split('/');
+  const propertyPath = String(options.auth) === 'true' ? ['default', name] : String(options.auth).trim().split('/');
   const [groupName, functionName] = propertyPath;
 
   if (existsSync(filePath)) {
