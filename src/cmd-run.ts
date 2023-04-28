@@ -56,14 +56,15 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   stdin.pipe(request);
 }
 
-async function readCredentials({ options, params }) {
+async function readCredentials(inputs: CliInputs) {
+  const { options, params, name } = inputs;
   const filePath = join(CWD, 'credentials.json');
-  const propertyPath = options.auth === 'true' ? ['default', params[0]] : options.auth.trim().split('/');
+  const propertyPath = String(options.auth) === 'true' ? ['default', name] : options.auth.trim().split('/');
   const [groupName, functionName] = propertyPath;
 
   if (existsSync(filePath)) {
     try {
-      const credentials = JSON.parse(readFileSync(filePath).toString('utf-8'));
+      const credentials = JSON.parse(readFileSync(filePath, 'utf-8'));
       const group = credentials[groupName];
       return (group && group[functionName]) || {};
     } catch (error) {
