@@ -16,14 +16,11 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   const stdin = options.stdin ? createReadStream(join(CWD, String(options.stdin))) : input;
 
   const onResponse = (response) => {
-    // TODO
-    // const nextHeader = response.headers['x-next'];
-    // const next = nextHeader !== undefined ? parseArgs(nextHeader) : false;
+    const next = response.headers['x-next'] && tryParse(Buffer.from(response.headers['x-next'], 'base64')) || null
 
-    // if (next) {
-    //   runFunction(options, next, input, output);
-    //   return;
-    // }
+    if (next) {
+      return runFunction(options, next, input, output);
+    }
 
     if (response.statusCode !== 200) {
       output.write(response.statusCode + ' ' + response.statusMessage + '\n');
@@ -75,4 +72,12 @@ async function readCredentials(inputs: CliInputs) {
   Console.error(
     `Invalid credentials: ${groupName}/${functionName}. Check if credentials.json exists and is a valid JSON file.`,
   );
+}
+
+function tryParse(json) {
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }
