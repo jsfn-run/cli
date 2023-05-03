@@ -5,7 +5,7 @@ export interface CliInputs {
   params: Record<string, string | boolean>;
 }
 
-const knownBooleans = ['local', 'info', 'auth', 'debug'];
+const knownBooleans = ['local', 'info', 'auth', 'debug', 'serve'];
 export function parseOptionsAndParams(args: string[]) {
   args = normalizeArgs(args);
   const output: CliInputs = {

@@ -1,17 +1,40 @@
 # @node-lambdas/cli
 
-This CLI can be used to test or develop new cloud functions.
+This CLI can be used to run or test [cloud functions](https://github.com/node-lambdas) from a terminal.
 
-## Create
+A reusable cloud function is basically an HTTPS server:
 
-A cloud function is just a regular Node.js project.
-The only requirement is to have an index file with a default export.
+```
+input >> POST https://[service].jsfn.run/[function] >> output
+```
 
-How to create a lambda project:
+For example: you have a JSON and you want to convert it to YAML, but you cannot install a program for that.
 
 ```bash
-mkdir new-function
-cd new-function && npm init -y
+cat file.json | fn yaml encode | tee file.yml
+```
+
+## Can I use it with cURL?
+
+Absolutely!
+
+```bash
+curl -d @file.json https://yaml.jsfn.run/encode
+```
+
+
+### Examples
+
+```bash
+# convert JSON to YAML
+cat your.json | fn yaml
+
+# calculate the sha256 hash for the content of file.txt
+cat file.txt | fn sha 256
+
+# convert Markdown to HTML
+cat README.md | fn markdown
+
 ```
 
 ## Serve
