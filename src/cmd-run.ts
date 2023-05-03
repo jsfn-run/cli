@@ -19,7 +19,8 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
     const next = response.headers['x-next'] && tryParse(Buffer.from(response.headers['x-next'], 'base64')) || null
 
     if (next) {
-      return runFunction(options, next, input, output);
+      const { name, params = {}, inputs = [] } = next;
+      return runFunction({ name, params, options: {}, inputs }, input, output);
     }
 
     if (response.statusCode !== 200) {
