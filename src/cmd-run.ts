@@ -8,8 +8,26 @@ import { CliInputs } from './options.js';
 import { buildFunctionUrl } from './function-url.js';
 
 const CWD = process.cwd();
+const shortHelp = `
+fn [+flag] name [--option=value]
+Flags:
+  +help
+  +info
+  +auth=[name]
+  +debug
+  +local
+  +port=[number]
+  +data=[data]
+
+See all options at https://github.com/node-lambdas/cli#all-options
+`;
 
 export async function runFunction(inputs: CliInputs, input = process.stdin, output = process.stdout) {
+  if (inputs.options.help) {
+    console.log(shortHelp);
+    process.exit(1);
+  }
+
   const { options } = inputs;
   const credentials = options.auth ? await readCredentials(inputs) : null;
   const url = buildFunctionUrl(inputs);
