@@ -18,6 +18,7 @@ Flags:
   +local
   +port=[number]
   +data=[data]
+  +nodata
 
 See all options at https://github.com/node-lambdas/cli#all-options
 `;
@@ -34,7 +35,7 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   const stdin = options.stdin ? createReadStream(join(CWD, String(options.stdin))) : input;
 
   const onResponse = (response) => {
-    const next = response.headers['x-next'] && tryParse(Buffer.from(response.headers['x-next'], 'base64')) || null
+    const next = (response.headers['x-next'] && tryParse(Buffer.from(response.headers['x-next'], 'base64'))) || null;
 
     if (next) {
       const { name, params = {}, inputs = [] } = next;
@@ -65,6 +66,11 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
 
   if (options.data) {
     request.write(options.data);
+    request.end();
+    return;
+  }
+
+  if (options.nodata) {
     request.end();
     return;
   }
