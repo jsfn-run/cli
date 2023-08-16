@@ -4,7 +4,7 @@
   "type": "module",
   "prettier": "@cloud-cli/prettier-config",
   "bin": {
-    "fn": "./cli.js"
+    "fn": "./index.js"
   },
   "scripts": {
     "test": "echo true",

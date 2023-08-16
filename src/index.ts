@@ -22,3 +22,16 @@ export function main(cliArgs: string[]) {
 
   return runFunction(inputs);
 }
+
+if (import.meta.url.startsWith('file:')) {
+  const modulePath = url.fileURLToPath(import.meta.url);
+
+  if (process.argv[1] === modulePath) {
+    try {
+      main(process.argv.slice(2));
+    } catch (error) {
+      Console.error(String(error));
+      process.exit(1);
+    }
+  }
+}
