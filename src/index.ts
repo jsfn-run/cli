@@ -1,10 +1,11 @@
+import { fileURLToPath } from "node:url";
 import { parseOptionsAndParams } from "./options.js";
 import { printFunctionApi } from "./cmd-info.js";
-import { Console } from '@node-lambdas/core';
+import { Console } from "@node-lambdas/core";
 import { runFunction } from "./cmd-run.js";
 
-export { runFunction } from './cmd-run.js';
-export { serve } from './cmd-serve.js';
+export { runFunction } from "./cmd-run.js";
+export { serve } from "./cmd-serve.js";
 
 export function main(cliArgs: string[]) {
   const inputs = parseOptionsAndParams(cliArgs);
@@ -23,8 +24,8 @@ export function main(cliArgs: string[]) {
   return runFunction(inputs);
 }
 
-if (import.meta.url.startsWith('file:')) {
-  const modulePath = url.fileURLToPath(import.meta.url);
+if (import.meta.url.startsWith("file:")) {
+  const modulePath = fileURLToPath(import.meta.url);
 
   if (process.argv[1] === modulePath) {
     try {
