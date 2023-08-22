@@ -13,7 +13,7 @@ npm i @node-lambdas/cli
 If you don't have access to NPM registry, download the JS script and make it executable:
 
 ```sh
-curl -o fn.mjs https://unpkg.com/@node-lambdas/cli@latest/index.js
+curl -o fn.mjs https://unpkg.com/@node-lambdas/cli@latest/fn.mjs
 chmod +x fn.mjs
 ```
 

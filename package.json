@@ -4,11 +4,11 @@
   "type": "module",
   "prettier": "@cloud-cli/prettier-config",
   "bin": {
-    "fn": "./index.js"
+    "fn": "./fn.mjs"
   },
   "scripts": {
     "test": "echo true",
-    "build": "npm run tsc && npm run rollup && rm dist/*.js",
+    "build": "npm run tsc && npm run rollup && rm dist/*.js && cat index.js >> fn.mjs",
     "tsc": "tsc",
     "rollup": "rollup -c"
   },

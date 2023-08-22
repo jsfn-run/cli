@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { fileURLToPath } from "node:url";
 import { parseOptionsAndParams } from "./options.js";
 import { Console } from "@node-lambdas/core";
