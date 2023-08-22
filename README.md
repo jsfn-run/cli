@@ -2,6 +2,23 @@
 
 This CLI can be used to run or test [cloud functions](https://github.com/node-lambdas) from a terminal.
 
+## How to install
+
+Via NPM is the easiest:
+
+```sh
+npm i @node-lambdas/cli
+```
+
+If you don't have access to NPM registry, download the JS script and make it executable:
+
+```sh
+curl -o fn.mjs https://unpkg.com/@node-lambdas/cli@latest/index.js
+chmod +x fn.mjs
+```
+
+## Introduction
+
 A reusable cloud function is basically an HTTPS server:
 
 ```
