@@ -1,7 +1,8 @@
-import { createReadStream, existsSync, readFileSync } from 'fs';
-import { request as http, RequestOptions } from 'http';
-import { request as https } from 'https';
-import { join } from 'path';
+import { createReadStream, existsSync, readFileSync } from 'node:fs';
+import { request as http, RequestOptions } from 'node:http';
+import { request as https } from 'node:https';
+import { join } from 'node:path';
+import process from "node:process";
 import { Console } from '@node-lambdas/core';
 import { baseRequestOptions } from './common.js';
 import { CliInputs } from './options.js';
