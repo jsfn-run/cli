@@ -5,7 +5,7 @@ export interface CliInputs {
   params: Record<string, string | boolean>;
 }
 
-const knownBooleans = ['local', 'info', 'auth', 'debug', 'serve'];
+const knownBooleans = ['local', 'info', 'auth', 'debug', 'serve', 'nodata'];
 export function parseOptionsAndParams(args: string[]) {
   args = normalizeArgs(args);
   const output: CliInputs = {
@@ -38,6 +38,10 @@ export function parseOptionsAndParams(args: string[]) {
 
     output.inputs.push(current);
     i++;
+  }
+
+  if (process.stdin.isTTY) {
+    output.options.nodata = true;
   }
 
   return output;
