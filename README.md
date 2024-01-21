@@ -39,7 +39,6 @@ Absolutely!
 curl -d @file.json https://yaml.jsfn.run/encode
 ```
 
-
 ### Examples
 
 ```bash
@@ -52,18 +51,6 @@ cat file.txt | fn sha 256
 # convert Markdown to HTML
 cat README.md | fn markdown
 
-```
-
-## Serve
-
-How to serve a lambda project with CLI:
-
-```bash
-cd path/to/project
-fn +serve
-
-# use a different port
-fn +serve +port=2000
 ```
 
 ## Run
@@ -150,7 +137,6 @@ echo 'let me in' | fn +auth function-name | fn +auth=bob-credentials function-na
 | option           | description                                                              |
 | ---------------- | ------------------------------------------------------------------------ |
 | `+auth=[name]`   | Name of an authentication group to use from './credentials.json'         |
-| `+serve`         | Serve a function from current folder for local testing                   |
 | `+port=[number]` | The http port to use when calling a local server with a running function |
 | `+data=[data]`   | Use the data passed as argument instead of `stdin` for next step         |
 | `+nodata`        | Run the cloud function without any input                                 |

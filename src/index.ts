@@ -2,23 +2,15 @@ import { parseOptionsAndParams } from "./options.js";
 import { Console } from "@node-lambdas/core";
 import { printFunctionApi } from "./cmd-info.js";
 import { runFunction } from "./cmd-run.js";
-import { serve } from "./cmd-serve.js";
 
 export { printFunctionApi } from "./cmd-info.js";
 export { runFunction } from "./cmd-run.js";
-export { serve } from "./cmd-serve.js";
 
 export function cli(cliArgs: string[]) {
   const inputs = parseOptionsAndParams(cliArgs);
   Console.debug(inputs);
 
-  const { options } = inputs;
-
-  if (options.serve) {
-    return serve(options);
-  }
-
-  if (options.info) {
+  if (inputs.options.info) {
     return printFunctionApi(inputs);
   }
 
