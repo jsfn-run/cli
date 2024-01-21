@@ -1,9 +1,9 @@
 import { Console } from '@node-lambdas/core';
 import { createReadStream, existsSync, readFileSync } from 'node:fs';
-import { RequestOptions, request as http } from 'node:http';
+import { RequestOptions, request as http, IncomingMessage } from 'node:http';
 import { request as https } from 'node:https';
 import { join } from 'node:path';
-import process from "node:process";
+import process from 'node:process';
 import { baseRequestOptions, buildFunctionUrl } from './common.js';
 import { CliInputs } from './options.js';
 
@@ -34,11 +34,12 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
   const url = buildFunctionUrl(inputs);
   const stdin = options.stdin ? createReadStream(join(CWD, String(options.stdin))) : input;
 
-  const onResponse = (response) => {
-    const next = (response.headers['x-next'] && tryParse(Buffer.from(response.headers['x-next'], 'base64'))) || null;
+  const onResponse = (response: IncomingMessage) => {
+    const next = response.headers['x-next'];
 
     if (next) {
-      const { name, params = {}, inputs = [] } = next;
+      const nextOptions = tryParse(Buffer.from(String(response.headers['x-next']), 'base64').toString('utf-8'));
+      const { name, params = {}, inputs = [] } = nextOptions;
       return runFunction({ name, params, options: {}, inputs }, input, output);
     }
 
@@ -61,7 +62,8 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
 
   Console.debug(String(url), requestOptions);
 
-  const request = (url.protocol === 'http:' ? http : https)(url, requestOptions, onResponse);
+  const actor = url.protocol === 'http:' ? http : https;
+  const request = actor(url, requestOptions, onResponse);
   request.on('error', (message) => Console.error(message));
 
   if (options.data) {
