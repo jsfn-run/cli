@@ -7,8 +7,8 @@
     "fn": "./fn.mjs"
   },
   "scripts": {
-    "test": "echo true",
     "build": "npm run tsc && npm run rollup && rm dist/*.js && cat index.js >> fn.mjs",
+    "test": "jest",
     "tsc": "tsc",
     "rollup": "rollup -c"
   },

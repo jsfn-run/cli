@@ -1,8 +1,8 @@
 const mockRequest = jest.fn();
 const mockHttpsRequest = jest.fn();
 
-jest.mock('http', () => ({ request: mockRequest }));
-jest.mock('https', () => ({ request: mockHttpsRequest }));
+jest.mock('node:http', () => ({ request: mockRequest }));
+jest.mock('node:https', () => ({ request: mockHttpsRequest }));
 
 import { EventEmitter } from 'events';
 import { CliInputs } from './options';

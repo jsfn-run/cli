@@ -1,5 +1,5 @@
-import { buildFunctionUrl } from './function-url';
-import { CliInputs } from './options';
+import { buildFunctionUrl } from './common.js';
+import { CliInputs } from './options.js';
 
 describe('buildFunctionUrl', () => {
   it('should build an URL from inputs', () => {

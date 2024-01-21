@@ -1,21 +1,26 @@
+const knownBooleans = ['local', 'info', 'auth', 'debug', 'nodata', 'json'] as const;
+const knownStrings = ['port', 'help', 'stdin', 'data'] as const;
+const knownOptions = [...knownBooleans, ...knownStrings] as const;
+
 export interface CliInputs {
   name: string;
   inputs: string[];
-  options: Record<string, string | boolean>;
+  options: Partial<Record<(typeof knownOptions)[number], string | number | boolean>>;
   params: Record<string, string | boolean>;
 }
 
-const knownBooleans = ['local', 'info', 'auth', 'debug', 'serve', 'nodata'];
 export function parseOptionsAndParams(args: string[]) {
   args = normalizeArgs(args);
   const output: CliInputs = {
     name: '',
     inputs: [],
     params: {},
-    options: {},
+    options: {
+      nodata: !!process.stdin.isTTY,
+    },
   };
 
-  for (let i = 0; i < args.length;) {
+  for (let i = 0; i < args.length; ) {
     const current = args[i];
     const next = args[i + 1];
 
@@ -25,7 +30,7 @@ export function parseOptionsAndParams(args: string[]) {
     }
 
     if (hasPlusSign(current)) {
-      const currentName = current.slice(1);
+      const currentName = current.slice(1) as any;
       i += readValue(output.options, currentName, next, () => knownBooleans.includes(currentName) || hasPlusSign(next));
       continue;
     }
@@ -38,10 +43,6 @@ export function parseOptionsAndParams(args: string[]) {
 
     output.inputs.push(current);
     i++;
-  }
-
-  if (process.stdin.isTTY) {
-    output.options.nodata = true;
   }
 
   return output;

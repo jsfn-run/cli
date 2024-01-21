@@ -1,12 +1,11 @@
+import { Console } from '@node-lambdas/core';
 import { createReadStream, existsSync, readFileSync } from 'node:fs';
-import { request as http, RequestOptions } from 'node:http';
+import { RequestOptions, request as http } from 'node:http';
 import { request as https } from 'node:https';
 import { join } from 'node:path';
 import process from "node:process";
-import { Console } from '@node-lambdas/core';
-import { baseRequestOptions } from './common.js';
+import { baseRequestOptions, buildFunctionUrl } from './common.js';
 import { CliInputs } from './options.js';
-import { buildFunctionUrl } from './function-url.js';
 
 const CWD = process.cwd();
 const shortHelp = `
@@ -44,7 +43,7 @@ export async function runFunction(inputs: CliInputs, input = process.stdin, outp
     }
 
     if (response.statusCode !== 200) {
-      output.write(response.statusCode + ' ' + response.statusMessage + '\n');
+      output.write(response.statusCode + ' ' + response.statusMessage + ': ' + url + '\n');
       response.on('end', () => process.exit(1));
       response.pipe(process.stderr);
       return;
@@ -100,7 +99,7 @@ async function readCredentials(inputs: CliInputs) {
   );
 }
 
-function tryParse(json) {
+function tryParse(json: string) {
   try {
     return JSON.parse(json);
   } catch {

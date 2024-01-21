@@ -1,9 +1,8 @@
 import { ApiDescription } from "@node-lambdas/core";
 import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
-import { baseRequestOptions, readStream } from "./common.js";
+import { baseRequestOptions, buildFunctionUrl, readStream } from "./common.js";
 import { CliInputs } from "./options.js";
-import { buildFunctionUrl } from "./function-url.js";
 
 export const Colors = {
   error: "\u001b[33;1m",
