@@ -45,6 +45,10 @@ export function parseOptionsAndParams(args: string[]) {
     i++;
   }
 
+  if (output.options.stdin) {
+    output.options.nodata = false;
+  }
+
   return output;
 }
 
