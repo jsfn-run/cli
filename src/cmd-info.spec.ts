@@ -12,6 +12,7 @@ import { baseRequestOptions } from './common';
 describe('request API details for a function', () => {
   it('should fetch API details from a function server and show them', async () => {
     const availableActions = {
+      description: 'A cloud function',
       actions: [
         {
           default: false,
