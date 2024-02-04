@@ -43,13 +43,18 @@ function showApiOptions(json: string, inputs: CliInputs) {
   }
 
   const functionName = inputs.options.local ? "+local" : inputs.name;
-  const actionList = JSON.parse(json) as ApiDescription[];
+  const descriptor = JSON.parse(json) as ApiDescription;
+  const actionList = descriptor.actions;
 
   if (!Array.isArray(actionList)) {
     throw new Error("Invalid response from function server");
   }
 
   const output: string[] = [""];
+
+  if (descriptor.description) {
+    output.push(descriptor.description);
+  }
 
   actionList.forEach((action) => {
     output.push(
