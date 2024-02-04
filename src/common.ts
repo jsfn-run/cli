@@ -18,7 +18,6 @@ export function readStream(stream: any): Promise<Buffer> {
 
 import { CliInputs } from './options.js';
 
-
 export function buildFunctionUrl(inputs: CliInputs): URL {
   const baseUrl = getServerUrl(inputs);
   const params = new URLSearchParams(inputs.params as Record<string, string>);
@@ -33,7 +32,9 @@ export function buildFunctionUrl(inputs: CliInputs): URL {
 function getServerUrl(inputs: CliInputs) {
   const port = inputs.options.port || defaultPort;
 
-  return new URL(inputs.options.local ? `http://localhost:${port}/` : `https://${getFunctionName(inputs)}.${cloudDomain}/`);
+  return new URL(
+    inputs.options.local ? `http://localhost:${port}/` : `https://${getFunctionName(inputs)}.${cloudDomain}/`,
+  );
 }
 
 function getFunctionName(inputs: CliInputs) {

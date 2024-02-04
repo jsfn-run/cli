@@ -1,10 +1,10 @@
-import { parseOptionsAndParams } from "./options.js";
-import { Console } from "@node-lambdas/core";
-import { printFunctionApi } from "./cmd-info.js";
-import { runFunction } from "./cmd-run.js";
+import { parseOptionsAndParams } from './options.js';
+import { Console } from '@node-lambdas/core';
+import { printFunctionApi } from './cmd-info.js';
+import { runFunction } from './cmd-run.js';
 
-export { printFunctionApi } from "./cmd-info.js";
-export { runFunction } from "./cmd-run.js";
+export { printFunctionApi } from './cmd-info.js';
+export { runFunction } from './cmd-run.js';
 
 export function cli(cliArgs: string[]) {
   const inputs = parseOptionsAndParams(cliArgs);

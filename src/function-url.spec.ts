@@ -7,7 +7,7 @@ describe('buildFunctionUrl', () => {
       options: {},
       params: {},
       name: 'test',
-      inputs: []
+      inputs: [],
     };
 
     const url = buildFunctionUrl(inputs);
@@ -18,9 +18,9 @@ describe('buildFunctionUrl', () => {
   it('should include input params as search params', () => {
     const inputs: CliInputs = {
       options: {},
-      params: { foo: 'foo', bar: true, },
+      params: { foo: 'foo', bar: true },
       name: 'test',
-      inputs: ['action']
+      inputs: ['action'],
     };
 
     const url = buildFunctionUrl(inputs);
@@ -46,7 +46,7 @@ describe('buildFunctionUrl', () => {
       options: {},
       params: {},
       name: '',
-      inputs: []
+      inputs: [],
     };
 
     expect(() => buildFunctionUrl(inputs)).toThrowError('Function name not provided.');

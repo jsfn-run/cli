@@ -11,21 +11,26 @@ import { baseRequestOptions } from './common';
 
 describe('request API details for a function', () => {
   it('should fetch API details from a function server and show them', async () => {
-    const availableActions = [{
-      default: false,
-      name: 'foo',
-      input: 'buffer',
-      output: 'text',
-      description: 'action description',
-      options: {
-        key: 'value',
-      },
-    }, {
-      default: true,
-      name: 'bar',
-      credentials: ['authentication'],
-      options: {},
-    }];
+    const availableActions = {
+      actions: [
+        {
+          default: false,
+          name: 'foo',
+          input: 'buffer',
+          output: 'text',
+          description: 'action description',
+          options: {
+            key: 'value',
+          },
+        },
+        {
+          default: true,
+          name: 'bar',
+          credentials: ['authentication'],
+          options: {},
+        },
+      ],
+    };
 
     const json = JSON.stringify(availableActions);
     setupRequest(200, json);
@@ -46,16 +51,20 @@ describe('request API details for a function', () => {
   });
 
   it('should fetch API details from a local server and show them', async () => {
-    const availableActions = [{
-      default: false,
-      name: 'foo',
-      input: 'buffer',
-      output: 'text',
-      description: 'action description',
-      options: {
-        key: 'value',
-      },
-    }];
+    const availableActions = {
+      actions: [
+        {
+          default: false,
+          name: 'foo',
+          input: 'buffer',
+          output: 'text',
+          description: 'action description',
+          options: {
+            key: 'value',
+          },
+        },
+      ],
+    };
     const json = JSON.stringify(availableActions);
     setupRequest(200, json, false);
 
