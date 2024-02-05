@@ -64,7 +64,7 @@ function showApiOptions(json: string, inputs: CliInputs) {
       .map(([key, value]) => ' --' + key + '=<' + value + '>')
       .join(' ');
 
-    output.push(`${Colors.error}fn ${action.name} ${options.length ? Colors.log + options : ''} ${Colors.reset}`);
+    output.push(`${Colors.error}fn ${functionName} ${action.name} ${options.length ? Colors.log + options : ''} ${Colors.reset}`);
 
     if (action.description) {
       output.push(Colors.log + action.description + Colors.reset);
